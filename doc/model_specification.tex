@@ -1,0 +1,425 @@
+\documentclass[
+12.5pt, 					% Main document font size
+a4paper, 				% Paper type, use 'letterpaper' for US Letter paper
+oneside,					% One page layout (no page indentation)
+headinclude,footinclude, % Extra spacing for the header and footer
+BCOR5mm, 				% Binding correction
+abstract=on
+]{scrreprt}
+
+%-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* %
+%	INCLUDES                                          %
+%-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* %
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[numbers]{natbib}
+\usepackage{doi}
+\usepackage{color}   %May be necessary if you want to color links
+\usepackage{hyperref}
+\usepackage[margin=2.8cm]{geometry}
+
+\usepackage{float}
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\usepackage{fancyhdr}
+\usepackage{multirow,array}
+
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{chngcntr}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary[topaths]
+
+\usepackage{ifthen}
+\usepackage{relsize}
+\usepackage{amsmath,amssymb}
+\usepackage{bibentry}
+\usepackage{arydshln}
+\usepackage{dirtytalk}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usetikzlibrary{decorations.pathreplacing}
+\usepackage{lineno,xcolor}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMMANDS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcount\mycount
+
+% Turn of indent at paragraph start
+\setlength{\parindent}{0pt}	
+
+\counterwithout{figure}{section}
+
+
+% Bibliography
+\let\oldbibliography\bibliography		
+\renewcommand{\bibliography}[1]{
+{
+  \let\chapter\section% Copy \section over \chapter
+  \oldbibliography{#1}}
+}
+\bibliographystyle{unsrtnat}
+
+
+\renewcommand\thesection{\arabic{section}}
+
+\hypersetup{	colorlinks,breaklinks,
+            	urlcolor=[rgb]{0.07,0.27,0.40},
+            	linkcolor=[rgb]{0.07,0.27,0.40},
+			anchorcolor=[rgb]{0.07,0.27,0.40},
+		}
+
+\numberwithin{equation}{chapter}
+\counterwithout{equation}{chapter}
+
+% Table padding of rows
+\newcommand\Tstrut{\rule{0pt}{3.6ex}}       % "top" strut
+\newcommand\Bstrut{\rule[-0.9ex]{0pt}{0pt}} % "bottom" strut
+\newcommand{\TBstrut}{\Tstrut\Bstrut} % top&bottom struts
+
+
+
+\begin{document}
+\nobibliography*
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MODEL DEFINITION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter*{Eco-CoEvo-Model}
+\vspace{1cm}
+
+\begin{tabular}{l l p{13cm}}
+$n$ & $\coloneqq$ & The number of species. \\ \\
+
+$k$ & $\coloneqq$ & The number of traits per species. \\ \\
+
+$N$ & $\coloneqq$ & A column vector of size $n$ denoting the abundance of each species. 
+To refer to species the indices $i$ and $j$ are used. An element $N_i$ should be in the range $[0,1]$. \\ \\
+
+$V$ & $\coloneqq$ & A column vector of size $n \times k$ indicating the trait values. To refer to traits the indices $p$, $q$ and $m$ are used. For instance $V_p^i$ refers to trait $p$ of species $i$.
+To refer to only the trait vector of a single species $i$, the notation $V^i$ is used. \\\\
+
+
+$B^i$ & $\coloneqq$ & A $k \times k$ matrix defining the epistatic interactions between traits of species $i$.  An entry $B_{pq}^i \in [-1,1]$ defines the effect of trait $q$ on trait $p$ in species $i$.
+Currently we assume $B_{pp}=0$, because it is simpler to compute the partial derivative of the fitness function. \\ \\
+
+
+$\rho$ & $\coloneqq$  &Affects the steepness of the fitness landscape. We need to explore the effect and its usefulness.\\ \\
+
+
+$A^{ij}$ &  $\coloneqq$  & Defines the ecological effects of the traits of species $j$ on the traits of species $i$. An entry $A^{ij}_{pq} \in \{-1,0, 1\}$ defines the effect (positive, neutral, negative) of trait $q$ of species $j$ on trait $p$ of species $i$.
+In total there are $n \times n - n $ of those matrices (two for each possible species pair).
+
+Possible restrictions to this matrices could be:
+There is only one trait involved for the interaction between two species.
+In this case, there is only one non zero entry in each $A^{ij}$. \\ \\
+
+ 
+$\lambda$  & $\coloneqq$ &  Separation of time scales between evolutionary and ecological dynamics.
+If $\lambda < 1$ evolution is slower compared to ecological processes.
+\\ \\
+
+$\eta$ & $\coloneqq$ & Controls the ratio of the external force to the internal force in trait evolution.
+\\ \\
+
+$\gamma$ & $\coloneqq$ & Defines how much the internal fitness affects the growth rate of a species.
+Its not so clear whether this parameter should be zero (what is the rational?).\\ \\
+
+$M$ & $\coloneqq$ & The maximum of the fitness function (internal trait evolution). \\ \\
+
+$r$ & $\coloneqq$ & Vector of size $n$, with $r_i$ being the intrinsic growth rate of species $i$.
+\\ \\
+$\beta$ & $\coloneqq$ & Carrying capacity (could also be per species).
+\\ \\
+$c^i_p$ & $\coloneqq$ & Affects the position of the global optimum of the internal fitness function of species $i$.
+\\ \\
+$h$ & $\coloneqq$ & Affects the maximum effect of an interaction (per trait) on the population change rate (the maximum effect is $1/h$). see functional response type II, to prevent unbounded population growth. 
+
+
+\end{tabular}
+
+
+\begin{table}[H]
+	\captionsetup{format=plain}
+    \begin{center}
+    \begin{tabular}{ c : c c c : c c c : c c c }
+    
+    	 		& $V^1_1$	& $V^1_2$ & $V^1_3$ & $V^2_1$ & $V^2_2$ & $V^2_3$ & $V^3_1$ & $V^3_2$ & $V^3_3$\\
+    
+    \Bstrut $V^1_1$ 	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+    \Bstrut $V^1_2$ 	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+    \Bstrut $V^1_3$ 	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+    	\hdashline
+    \Bstrut $V^2_1$ 	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+   \Bstrut  $V^2_2$ 	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+    \Bstrut $V^2_3$ 	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+    \hdashline
+    \Bstrut $V^3_1$	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+    \Bstrut $V^3_2$ 	& 0	& 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \Tstrut\\
+   \Bstrut $V^3_3$	& 0	& 0 & 0 & 0 & 0 & 0 &  0 & 0 & 0 \Tstrut\\
+
+	\end{tabular}
+	
+	
+  	\end{center}
+  	
+\end{table}
+
+
+
+\subsection*{Remarks}
+
+\begin{itemize}
+\item The structure (or complexity) of the matrices $A^{ij}$ are a major property of the model that needs to be investigated.
+
+\end{itemize}
+
+
+\section*{Ecological dynamics}
+
+
+\begin{equation}
+\label{eq:population_dynamics}
+\frac{dN_i}{dt} = N_i \Big(r_i - \beta N_i + \gamma \Psi(V^i) + \sum_{j=1, i \neq j}^n \frac{G(V^i, V^j) ) N_j}{1 + h N_j} \Big)
+\end{equation}
+
+
+
+\begin{equation}
+\label{eq:population_dynamics_interactions}
+G(V^i, V^j) = \sum_{p=1}^{k} g(V^i_p, V^j)
+\end{equation}
+
+\begin{equation}
+\label{eq:population_dynamics_interactions}
+g(V^i_p, V^j) = \sum_{q=1}^{k} A^{ij}_{pq} F(V^i_p, V^j_q) 
+\end{equation}
+
+
+The function $F:  \mathbb{R}^2 \rightarrow [0,1]$ gives the interaction strength contribution between two species due to the two traits. Currently we only consider a trait match function which has its maximum if the two traits are equal, but other function could be applied as well.
+\newline
+\begin{equation}
+\label{eq:population_dynamics_interactions}
+F(V^i_p, V^j_q) = e^{-(V^i_p - V^j_q)^2}
+\end{equation}
+
+\section*{Evolution}
+
+The traits of the species evolve due to internal epistasis and interactions.
+Both interactions with other species and epistatic relations impose selective pressure on the traits. Generally, the traits evolve according to a gradient ascent procedure. 
+We take into account the gradient of the internal fitness landscape (epistasis) as well as the gradient of the per capita growth rate of a species. Hence traits evolve in a direction, of improved fitness.
+
+
+\begin{equation}
+\label{eq:trait_change}
+\frac{dV^i_p}{dt} = 
+\lambda N_i
+\Big(
+\sum_{j=1}^{n} N_j \frac{\partial g(V^i_p, V^j)}{\partial V^i_p} + 
+\eta \frac{\partial \Psi(V^i)}{\partial V^i_p}
+\Big)
+\end{equation}
+
+
+
+\subsection*{Evolution due to epistasis}
+\vspace{0.5cm}
+
+\begin{equation}
+\label{eq:trait_change_interactions}
+\begin{aligned}
+\frac{\partial \Psi(V^i)}{\partial V^i_p} = 
+2 \rho M k^{-1} \Bigg(
+\frac{ \big(-V^i_p + \mu_p(V^i) \big) }
+{\big(1+ \rho (V^i_p-\mu_p(V^i))^2\big)^2} +
+\sum_{q=1, p \neq q}^{k}
+\frac{ B^i_{qp} \big(V^i_q - \mu_q(V^i))}
+{\big(1+ \rho (V^i_q-\mu_q(V^i))^2\big)^2} 
+\Bigg)
+\\ \\
+=
+2 \rho M k^{-1} \Bigg(
+\frac{ \big(c^i_p-V^i_p + \sum_{q=1}^{k} B^i_{pq} V^i_q\big) }
+{\big(1+ \rho (V^i_p-\mu_p(V^i))^2\big)^2} +
+\sum_{q=1, p \neq q}^{k}
+\frac{ B^i_{qp} \big(V^i_q - c^i_q - \sum_{m=1}^{k} B^i_{qm} V^i_m\big)}
+{\big(1+ \rho (V^i_q-\mu_q(V^i))^2\big)^2}
+\Bigg)
+\end{aligned}
+\end{equation}
+\newline
+
+
+Under the assumption that $B^i_{pp}=0$, otherwise the derivative is more complicated.
+
+\subsection*{Evolution due to interactions}
+\vspace{0.5cm}
+
+\begin{equation}
+\label{eq:trait_change_interactions}
+\begin{aligned}
+\frac{\partial g(V^i_p, V^j)}{\partial V^i_p} = 
+\sum_{q=1}^{k}
+A^{ij}_{pq} 
+\frac{\partial F(V^i_p, V^j_q)}{\partial V^i_p}  
+= 
+- \sum_{q=1}^{k} A^{ij}_{pq} (V^i_p - V^j_q) e^{-(V^i_p - V^j_q)^2}  
+\end{aligned}
+\end{equation}
+
+
+
+
+\section*{Trait epistasis - fitness landscape}
+
+\begin{equation}
+\label{eq:fitness_function}
+\Psi(V^i) = \frac{1}{k}\sum_{p=1}^k \phi_p(\vec{V^i})
+\end{equation}
+
+\begin{equation}
+\label{eq:fitness_function_trait_contribution}
+\phi_p(V^i) = \frac{M}{1+ \rho (V^i_p-\mu_p(V^i))^2}
+\end{equation}
+
+\begin{equation}
+\label{eq:fitness_function_epistatic_effect}
+\mu_p(V^i) = c_p^i + \sum_{q=1}^l B_{pq}^i V^i_q
+\end{equation}
+
+\subsubsection*{Remarks}
+
+\begin{itemize}
+\item
+Potentially, the parameter $M$ could be defined per species instead of using the same for all species.
+
+\item
+Through $c_p^i$ one can determine the position of the global optimum the trait space of a species. We need to explore in more detail what it does.
+
+\item
+We need to check whether under the given definitions traits can grow to infinity.
+If so, it would be desirable if the trait values are restricted to a certain range.
+
+
+\end{itemize}
+
+
+\section*{Research Questions / Plan}
+
+\begin{itemize}
+\item Assuming, the entries in the $A$ and $B$ matrices are chosen randomly.
+What is the effect of the properties (e.g. connectance) on the dynamical properties like,
+persistence (fractions of species surviving), overall strength of ecological interactions
+(sum over all interactions strengths), 
+\newline
+
+\end{itemize}
+
+\subsection{Simple 2-Species/ 2-Trait System}
+
+There are $3^2=9$ combinations of $B$ matrices:
+
+$$
+B :
+ \begin{bmatrix}
+  0 & 0 \\
+  0 & 0 \\
+ \end{bmatrix}
+ \begin{bmatrix}
+  0 & 1 \\
+  0 & 0 \\
+ \end{bmatrix}
+  \begin{bmatrix}
+  0 & 0 \\
+  1& 0 \\
+ \end{bmatrix}
+   \begin{bmatrix}
+  0 & 1 \\
+  1& 0 \\
+ \end{bmatrix}
+  \begin{bmatrix}
+  0 & -1 \\
+  0 & 0 \\
+ \end{bmatrix}
+  \begin{bmatrix}
+  0 & 0 \\
+  -1 & 0 \\
+ \end{bmatrix}
+ \begin{bmatrix}
+  0 & -1 \\
+  -1 & 0 \\
+ \end{bmatrix}
+  \begin{bmatrix}
+  0 & -1 \\
+  1 & 0 \\
+ \end{bmatrix}
+   \begin{bmatrix}
+  0 & 1 \\
+  -1 & 0 \\
+ \end{bmatrix}
+$$
+
+There are $3^4=81$ possible $A$ matrices.
+
+$$
+A :
+ \begin{bmatrix}
+  1 & 0 \\
+  0 & 0 \\
+ \end{bmatrix}
+ \begin{bmatrix}
+  0 & 1 \\
+  0 & 0 \\
+ \end{bmatrix}
+ ...
+ \begin{bmatrix}
+  -1 & -1 \\
+  -1 & -1 \\
+ \end{bmatrix}
+$$
+
+Hence in total there are $81 \times 81 \times 9 \times 9 = 531441$ combinations (there are symmetries - try to identify them in order to reduce search space).
+\newline
+
+
+What is the fraction of simulations for which, at a certain parameter combination a fix point is reached after a certain time?
+\newline
+
+What is the extinction probability for different parameter combinations?
+\newline
+
+Which species dominates which species (and how does it relate to the matrices)?
+\newline
+
+Is it possible to classify the results based on the $B$ and $A$ matrices (and their combinations).
+What are the properties of the matrices that most significantly affect the results?
+\newline
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BIBLIOGRAPHY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\renewcommand{\bibname}{}
+\vspace{2cm}
+\section*{References}
+\bibliography{references}
+
+
+\end{document}
+
+
+
