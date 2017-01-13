@@ -81,11 +81,14 @@ DV<-function(AB,N,V,c,n,k,M,eta,rho,lamda){
 model<-function(t,y,parms){
   N=y[1:n]
   V=y[(n+1):(n+(n*k))]
+  with(parms,{
   dV=DV(AB=AB,N=N,V=V,c=c,n=n,k=k,rho=rho,lamda=lamda,eta=eta,M=M)
   fitness<-dV$fitness
   dN=DN(N=N,V=V,AB=AB,n=n,r=r,k=k,beta=beta,gamma=gamma,fitness=fitness)
   #y=c(N,V)
-  list (c(dN,dV$DV_out))
+  return(list (c(dN,dV$DV_out)))
+  })
+ 
 }
 
 #combine parameters
