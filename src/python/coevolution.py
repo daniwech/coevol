@@ -1,21 +1,11 @@
 """
-
-
-python -m science.miscellaneous.experiments.continuous_coevolution.coevolution
+python -m science.miscellaneous.coevol.src.python.coevolution
 """
 
 import numpy
 import pandas
 import scipy.integrate
 import matplotlib.pyplot as plt
-import adaptive_walk
-import coevolution_analysis
-
-
-
-
-
-
 
 
 class EcoCoEvol:
@@ -84,8 +74,6 @@ class EcoCoEvol:
 
         X0 = N0 + V0
         sol = scipy.integrate.odeint(self.dX, X0, T, mxstep=50000000)
-
-
 
         return pandas.DataFrame(sol, index=T, columns=self.getNColNames() + self.getVColNames())
 
@@ -179,8 +167,7 @@ class EcoCoEvol:
                     continue
 
                 N_j = self.N(j)
-                sum += self.G(i, j) * N_j / (1.0 + self.h * N_j)
-
+                sum += self.G(i, j)* N_j / (1.0 + self.h * N_j)
 
             dN_i_dt = N_i * (self.r[i] - self.beta*N_i + self.gamma*self.Psi(i) + sum)
             dN_dt_.append(dN_i_dt)
@@ -369,90 +356,46 @@ class EcoCoEvol:
         print "i=" + str(i) + " j=" + str(j) + " p=" + str(p) + " q=" + str(q)
 
 
-def getRandomInteractionMatrix(n, k, fracNoneZeros, fracNegative):
 
-    I_= numpy.zeros(shape=(n*k, n*k))
-    for i in range(0, n*k):
-        for j in range(0, n*k):
-            if numpy.random.rand() > fracNoneZeros:
-                if numpy.random.rand() < fracNegative:
-                    I_[i,j] = -1.0
-                else:
-                    I_[i,j] = 1.0
-
-    numpy.fill_diagonal(I_, 0.0)
-    return I_
-
-def getRandomVector(fracNegative):
-    r_ = numpy.random.rand(1, n_)[0].tolist()
-    for ri in range(0, len(r_)):
-        if numpy.random.rand() < fracNegative:
-            r_[ri] =    r_[ri] * -1.0
-    return r_
-
-n_ = 6
-k_ = 3
-
-rho_ = 1.0
-lambda_ = 0.1
-eta_ = 0.2
-gamma_ = 0.2
-M_ = 1.0
-h_ = 1.0
-beta_ = 1.0
-numpy.random.seed(3135)
-N0 = numpy.random.rand(1, n_)[0].tolist()
-V0 = numpy.random.rand(1, n_*k_)[0].tolist()
-
-I_ = getRandomInteractionMatrix(n_, k_, 0.5, 0.5)
-r_ = getRandomVector(0.6)
-c_ = numpy.random.rand(n_, k_)
+if __name__ == "__main__":
 
 
 
-"""
-N0 = [0.5, 0.6]
-V0 = [0.4, 0.5, 0.6, 0.7]
-c_ = [[201.0, 1.0],
-      [20.0, 0.0]]
+    numpy.set_printoptions(linewidth=200)
 
-I_  = [[0.0, 1.0, 1.0, 1.0],
-       [0.0, 0.0, 1.0, 0.0],
-       [-1.0, 1.0, 0.0, 1.0],
-       [0.0, -1.0, 1.0, 0.0]]
+    n_ = 2
+    k_ = 2
+    N0 = [0.5, 0.6]
+    V0 = [0.4, 0.5,0.6,0.7]
+    rho_ = 1.0
+    lambda_ = 1.0
+    eta_ = 1.0
+    gamma_ = 0.0
+    M_ = 1.0
+    r_ = [0.5, 0.5]
+    beta_ = 1.0
+    c_ = [[1.0, 1.0],
+          [1.0, 1.0],
+        ]
+    h_ = 0.5
 
-beta_ = 1.0 * k_ / n_
-
-r_ = [0.1, 0.1]
-I_ = numpy.matrix(I_)
-"""
-
-
-
-ecv = EcoCoEvol(I_, n_, rho_, lambda_, eta_, gamma_, M_, beta_, r_, c_, h_)
-
-T = numpy.arange(0, 20, 1.0)
-
-
-X0 = N0 + V0
-
-print ecv.dX(X0, 0)
+    AB = numpy.matrix([[0.0, 0.0, 0.0, 1.0],
+                       [1.0, 0.0, 0.0, 1.0],
+                       [1.0, 0.0, 0.0, 0.0],
+                       [1.0, 1.0, 1.0, 0.0]
+                       ])
 
 
-df = ecv.integrate(N0, V0, T)
-
-fig, ax = plt.subplots(nrows=n_+1, ncols=1, sharex=False, sharey=False,squeeze=False, dpi=120, figsize=(8, 8))
-df[ecv.getNColNames()].plot(ax=ax[0,0])
-#plotting_helpers.writeTextOnAxis(ax[0,0], "Abundance", 0.5, 0.1, fontSize=12)
-for i in range(0, n_):
-    df[ecv.getVColNames(i)].plot(ax=ax[i+1,0], legend=None)
-    #plotting_helpers.writeTextOnAxis(ax[i+1,0], "$N^" + str(i) + "$", 0.5, 0.1, fontSize=12)
-
-plt.show()
+    ecv = EcoCoEvol(AB, n_, rho_, lambda_, eta_, gamma_, M_, beta_, r_, c_, h_)
+    T = numpy.arange(0, 20, 0.1)
 
 
-df = coevolution_analysis.computeFitnessTraitDependence(ecv, 1, 2, numpy.arange(-2.0, 5.0, 0.1))
-df.plot()
-plt.show()
+    df = ecv.integrate(N0, V0, T)
 
+    fig, ax = plt.subplots(nrows=n_+1, ncols=1, sharex=False, sharey=False,squeeze=False, dpi=120, figsize=(8, 8))
+    df[ecv.getNColNames()].plot(ax=ax[0,0], legend=None)
+    for i in range(0, n_):
+        df[ecv.getVColNames(i)].plot(ax=ax[i+1,0], legend=None)
+
+    plt.show()
 

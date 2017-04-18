@@ -1,3 +1,8 @@
 /doc/build/
 /doc/*.tar.gz
 /Release/
+*.pyc
+
+
+src/python/basic_style.py
+src/python/colormaps.py
