@@ -18,13 +18,19 @@ beta=1
 c=c(1,1,1,1)#runif(n*k)*10
 h=0.5
 #A&B together
+
 AB<-matrix(c(
-  0,1,1,1,
-  1,0,1,1,
-  1,1,0,1,
+  0,0,0,1,
+  1,0,0,1,
+  1,0,0,0,
   1,1,1,0),nrow=4,ncol=4,byrow=T
 )
 
+if (gamma != 0) {
+  cat("WARNING: gamma should be 0")
+}
+
+ 
 #function to Vp-Vq
 Vdiff<-function(V){
   k<-length(V)
@@ -49,19 +55,25 @@ plotout<-function(out,sp_N=2){
 #function of change rate of population N
 DN<-function(N,V,AB,n,r,k,beta,gamma,fitness){
   mat <- function(wholesize, blocksize) {
-    suppressWarnings(matrix(c(rep(1, blocksize), rep(0, wholesize)), wholesize, wholesize/blocksize))
+    (matrix(c(rep(1, blocksize), rep(0, wholesize)), wholesize, wholesize/blocksize))
   }
   
   eco_A<-(exp(-(Vdiff(V))^2))*AB
+  
   eco_A<-t(mat(k*n,k))%*%eco_A%*%mat(k*n,k)
+  
   #diag(eco_A)<--beta
-  DN_out<-N*(r+gamma*0-beta*N+eco_A%*%(N/(1+h*N)))
+  # Diagonal needs to be zero otherwise, traits within a species
+  # also interact with each other (hence have effect on growth rate).
+  diag(eco_A)<--0
+  DN_out<-N*(r+gamma-beta*N+eco_A%*%(N/(1+h*N)))
   DN_out
+
 }
 
 ##function of change rate of traits DV
 DV<-function(AB,N,V,c,n,k,M,eta,rho,lamda){
-
+  
   diag_block<-as.matrix(bdiag(replicate(n,list(matrix(1, k,n)))))
   AB_epi<-diag_block*AB
   diag(AB_epi)<--1# get the Vp in to matrix
@@ -82,13 +94,13 @@ model<-function(t,y,parms){
   N=y[1:n]
   V=y[(n+1):(n+(n*k))]
   with(parms,{
-  dV=DV(AB=AB,N=N,V=V,c=c,n=n,k=k,rho=rho,lamda=lamda,eta=eta,M=M)
-  fitness<-dV$fitness
-  dN=DN(N=N,V=V,AB=AB,n=n,r=r,k=k,beta=beta,gamma=gamma,fitness=fitness)
-  #y=c(N,V)
-  return(list (c(dN,dV$DV_out)))
+    dV=DV(AB=AB,N=N,V=V,c=c,n=n,k=k,rho=rho,lamda=lamda,eta=eta,M=M)
+    fitness<-dV$fitness
+    dN=DN(N=N,V=V,AB=AB,n=n,r=r,k=k,beta=beta,gamma=gamma,fitness=fitness)
+    #y=c(N,V)
+    return(list (c(dN,dV$DV_out)))
   })
- 
+  
 }
 
 #combine parameters
